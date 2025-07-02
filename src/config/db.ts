@@ -20,5 +20,11 @@ export const sequelize = new Sequelize(
       acquire: 30000,
       evict: 1000,
     },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // For most managed DBs like Render, Heroku, etc.
+      },
+    },
   }
 )
