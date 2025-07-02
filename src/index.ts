@@ -19,3 +19,10 @@ app.use('/identify', identifyRoute);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+import { sequelize } from './config/db'; // adjust path as needed
+
+(async () => {
+  await sequelize.sync(); // or { force: true } for development only
+  // Start your server here
+})();

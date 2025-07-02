@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Contact } from '../models/Contact';
+import Contact  from '../models/Contact';
 import { Op, Sequelize } from 'sequelize';
 
 export const identifyContact = async (req: Request, res: Response): Promise<void> => {
@@ -87,8 +87,8 @@ export const identifyContact = async (req: Request, res: Response): Promise<void
     const uniquePhones = new Set<string>();
     const secondaryIds: number[] = [];
 
-    primary.email ?? uniqueEmails.add(primary.email)
-    primary.email ?? uniquePhones.add(primary.phoneNumber)
+    if (primary.email) uniqueEmails.add(primary.email);
+    if (primary.phoneNumber) uniquePhones.add(primary.phoneNumber);
   
     allRelatedContacts.forEach(contact => {
       if (contact.email) uniqueEmails.add(contact.email);
@@ -96,22 +96,6 @@ export const identifyContact = async (req: Request, res: Response): Promise<void
       if (contact.id !== primary.id) secondaryIds.push(contact.id);
     });
   
-    // Step 5: If current input is new (not in existing), create secondary
-    // const alreadyExists = allRelatedContacts.some(
-    //   c => c.email === email && c.phoneNumber === phoneNumber
-    // );
-  
-    // if (!alreadyExists) {
-    //   const newSecondary = await Contact.create({
-    //     email,
-    //     phoneNumber,
-    //     linkPrecedence: 'secondary',
-    //     linkedId: primaryContact.id,
-    //   }, { transaction });
-    //   secondaryIds.push(newSecondary.id);
-    //   if (email) uniqueEmails.add(email);
-    //   if (phoneNumber) uniquePhones.add(phoneNumber);
-    // }
   
     await transaction.commit();
     res.status(200).json({
@@ -130,25 +114,17 @@ export const identifyContact = async (req: Request, res: Response): Promise<void
 };
 
 
-// ...existing code...
-
-/**
- * Updates the linkPrecedence of all but the oldest primary contact to 'secondary'.
- * @param transaction Sequelize transaction object
- * @param primaryContacts Array of primary Contact instances
- */
 async function updatePrimaryPrecedence(
   transaction: any,
   primaryContacts: Contact[]
 ): Promise<Contact> {
   if (primaryContacts.length <= 1) return primaryContacts[0];
 
-  // Find the oldest primary contact
+  
   const oldest = primaryContacts.reduce((prev, curr) =>
     prev.createdAt < curr.createdAt ? prev : curr
   );
 
-  // Update all other primary contacts to secondary and set their linkedId to the oldest's id
   const updates = primaryContacts
     .filter(c => c.id !== oldest.id)
     .map(c =>
@@ -162,5 +138,3 @@ async function updatePrimaryPrecedence(
 
   return oldest
 }
-
-// ...existing code...
